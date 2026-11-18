@@ -1,1 +1,13 @@
 # tallyboard
+
+- `web/` — React + TypeScript + Vite frontend.
+- `api/` — FastAPI backend (added by later stories).
+
+## Commands (run in `web/`)
+
+- `npm ci` — install dependencies
+- `npm run dev` — start the dev server
+- `npm run build` — type-check and produce a minified production bundle in `dist/`
+- `npm test` — run the web tests (`npm run test:coverage` for coverage)
+
+From the repository root, `npm install && npm test` runs the whole suite.
