@@ -23,5 +23,6 @@ Routes are defined in `web/src/routes/routePaths.ts` (URL paths) and `web/src/ro
 ## Backend (`api/`)
 
 - The database URL is read from the `DATABASE_URL` environment variable (an `postgresql+asyncpg://` URL); it is never written to files.
+- `CORS_ORIGINS` — comma-separated browser origins allowed to call the API (for example `http://localhost:5173`); required when serving, no wildcard. The web app reads the API base URL from `VITE_SYNC_API_URL`.
 - `cd api && .venv/bin/alembic upgrade head` — apply migrations (schema `sync`, table `sync.records`).
 - `cd api && .venv/bin/uvicorn --factory tallyboard_api.main:create_app` — serve the API.
