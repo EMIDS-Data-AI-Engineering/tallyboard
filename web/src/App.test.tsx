@@ -12,19 +12,19 @@ async function renderApp() {
 }
 
 describe("App", () => {
-  it("renders the application heading", async () => {
+  it("renders the Home screen at the root URL through the browser router", async () => {
     await renderApp();
 
     const headings = screen.getAllByRole("heading", { level: 1 });
     expect(headings).toHaveLength(1);
-    expect(headings[0].textContent?.trim()).not.toBe("");
-    expect(screen.getByRole("main")).toBeTruthy();
+    expect(headings[0].textContent?.trim()).toBe("Home");
+    expect(screen.getAllByRole("main")).toHaveLength(1);
   });
 
   it("has no axe accessibility violations", async () => {
     const { axe } = await import("jest-axe");
     const { container } = await renderApp();
-    expect(container.querySelector("h1")).not.toBeNull();
+    expect(container.querySelector("h1")?.textContent?.trim()).toBe("Home");
 
     const results = await axe(container);
 
