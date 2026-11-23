@@ -4,7 +4,7 @@ import type { LocalStore } from "./ports";
 export function createLocalStorageStore(storage: Pick<Storage, "getItem" | "setItem">): LocalStore {
   return {
     read(key) {
-      const raw = storage.getItem(key);
+      const raw = readRaw(storage, key);
       return raw === null ? null : parseStored(key, raw);
     },
     write(key, value) {
@@ -15,6 +15,14 @@ export function createLocalStorageStore(storage: Pick<Storage, "getItem" | "setI
       }
     },
   };
+}
+
+function readRaw(storage: Pick<Storage, "getItem">, key: string): string | null {
+  try {
+    return storage.getItem(key);
+  } catch {
+    throw new PersistenceError("local-read-failed", `Could not read "${key}" from localStorage.`);
+  }
 }
 
 function parseStored(key: string, raw: string): unknown {

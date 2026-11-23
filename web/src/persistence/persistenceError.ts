@@ -3,7 +3,8 @@ export type PersistenceErrorKind =
   | "local-write-failed"
   | "sync-failed"
   | "sync-unconfigured"
-  | "invalid-key";
+  | "invalid-key"
+  | "invalid-value";
 
 export class PersistenceError extends Error {
   readonly kind: PersistenceErrorKind;

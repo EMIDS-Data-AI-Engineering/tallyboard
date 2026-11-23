@@ -16,9 +16,9 @@ function memoryLocal() {
 }
 
 describe("persistenceService offline and key handling", () => {
-  it("load surfaces a sync-failed error when a missing key cannot be checked on the backend", async () => {
+  it("load resolves the fallback with a sync-failed error when a missing key cannot be checked on the backend", async () => {
     const service = createPersistenceService({ local: memoryLocal(), remote: failingRemote });
-    await expect(service.load("fresh-key", "default")).rejects.toMatchObject({ kind: "sync-failed" });
+    await expect(service.load("fresh-key", "default")).resolves.toMatchObject({ ok: false, value: "default", error: { kind: "sync-failed" } });
   });
 
   it("load still serves a local value while the backend is down", async () => {
@@ -28,11 +28,11 @@ describe("persistenceService offline and key handling", () => {
     expect(await service.load("kept")).toBe(7);
   });
 
-  it("load surfaces a failed write-back of the restored value", async () => {
+  it("load resolves a failed write-back of the restored value as a typed error", async () => {
     const local = { read: () => null, write: () => { throw new PersistenceError("local-write-failed", "full", false); } };
     const remote = { put: async () => ({}), get: async () => 1 } as never;
     const service = createPersistenceService({ local, remote });
-    await expect(service.load("k")).rejects.toMatchObject({ kind: "local-write-failed" });
+    await expect(service.load("k")).resolves.toMatchObject({ ok: false, error: { kind: "local-write-failed" } });
   });
 
   it("save rejects a key the backend would refuse, before writing locally", async () => {

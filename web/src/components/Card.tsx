@@ -1,17 +1,18 @@
 import { useId } from "react";
-import type { ReactNode } from "react";
+import type { HTMLAttributes } from "react";
+import { joinClasses } from "./joinClasses";
 
-export interface CardProps {
+export interface CardProps extends HTMLAttributes<HTMLElement> {
   title?: string;
-  children: ReactNode;
 }
 
-export function Card({ title, children }: CardProps) {
+export function Card({ title, children, className, ...rest }: CardProps) {
   const titleId = useId();
   return (
     <section
       aria-labelledby={title ? titleId : undefined}
-      className="rounded-lg border border-border bg-surface p-4 text-text md:p-6"
+      className={joinClasses("rounded-lg border border-border bg-surface p-4 text-text md:p-6", className)}
+      {...rest}
     >
       {title && (
         <h2 id={titleId} className="mb-2 text-lg font-semibold">

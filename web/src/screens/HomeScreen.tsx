@@ -15,7 +15,7 @@ export default function HomeScreen() {
       <h1 className="text-2xl font-bold text-text">Home</h1>
       <section aria-label="Primary actions" className="flex flex-col gap-3 rounded-lg border border-border bg-surface-muted p-4">
         <p className="text-sm font-semibold uppercase tracking-wide text-text-muted">Score tracker for game nights</p>
-        <p className="text-lg text-text">Track every point. Every round.</p>
+        <h2 className="font-heading text-lg text-text">Track every point. Every round.</h2>
         <div className="flex flex-wrap gap-3">
           <Button onClick={() => navigate(ROUTE_PATHS.createGame)}>Create New Game</Button>
           <Button
