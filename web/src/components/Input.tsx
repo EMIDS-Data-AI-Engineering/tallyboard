@@ -11,8 +11,9 @@ export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
   onIntegerChange?: (value: number | null) => void;
 }
 
-export function Input({ label, onValueChange, onIntegerChange, onChange, className, ...rest }: InputProps) {
-  const inputId = useId();
+export function Input({ label, onValueChange, onIntegerChange, onChange, className, id, ...rest }: InputProps) {
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const raw = event.target.value;
