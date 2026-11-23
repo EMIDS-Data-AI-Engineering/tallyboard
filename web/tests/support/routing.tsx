@@ -4,6 +4,8 @@ import { createElement } from "react";
 // Modules are loaded at call time so a missing module fails the calling test only.
 const routerPackage = "react-router-dom";
 const routeTableModule = "../../src/routes/routeTable";
+const catalogContextModule = "../../src/savedGames/SavedGameCatalogContext";
+const catalogModule = "../../src/savedGames/SavedGameCatalog";
 
 export const SAMPLE_GAME_ID = "game-1";
 
@@ -21,10 +23,15 @@ export const SCREEN_EXPECTATIONS: ReadonlyArray<readonly [string, string]> = [
   ["Player Registry", "/players"],
 ];
 
-export async function renderAt(path: string) {
+export async function renderAt(path: string, savedGames: readonly unknown[] = []) {
   const { createMemoryRouter, RouterProvider } = await import(/* @vite-ignore */ routerPackage);
   const { appRoutes } = await import(/* @vite-ignore */ routeTableModule);
+  const { SavedGameCatalogProvider } = await import(/* @vite-ignore */ catalogContextModule);
+  const { inMemorySavedGameCatalog } = await import(/* @vite-ignore */ catalogModule);
   const router = createMemoryRouter(appRoutes, { initialEntries: [path] });
-  const view = render(createElement(RouterProvider, { router }));
+  const catalog = inMemorySavedGameCatalog(savedGames);
+  const view = render(
+    createElement(SavedGameCatalogProvider, { catalog }, createElement(RouterProvider, { router })),
+  );
   return { router, ...view };
 }

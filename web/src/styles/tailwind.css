@@ -1,20 +1,22 @@
 @import "tailwindcss";
 
-/* Provisional placeholder values (no approved brand tokens yet); only the role names are fixed. */
+/* Approved light brand palette. Border stays #6b7280: brand #E9D8EC fails 3:1 on white. */
 @theme {
-  --color-primary: #1d4ed8;
+  --color-primary: #C2185B;
   --color-primary-contrast: #ffffff;
-  --color-secondary: #e5e7eb;
-  --color-secondary-contrast: #111827;
+  --color-secondary: #7B4FB8;
+  --color-secondary-contrast: #ffffff;
   --color-surface: #ffffff;
-  --color-surface-muted: #f3f4f6;
-  --color-text: #111827;
-  --color-text-muted: #4b5563;
+  --color-surface-muted: #FFF7FA;
+  --color-text: #2B1830;
+  --color-text-muted: #6A5570;
   --color-border: #6b7280;
   --color-danger: #b91c1c;
   --color-danger-contrast: #ffffff;
-  --color-focus: #1d4ed8;
+  --color-focus: #C2185B;
   --color-disabled: #9ca3af;
   --color-disabled-text: #111827;
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-heading: Nunito, system-ui, sans-serif;
   --breakpoint-md: 48rem;
 }

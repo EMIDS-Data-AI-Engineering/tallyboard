@@ -13,6 +13,7 @@ const ROLE_TOKENS = [
 const TEXT_PAIRS = [
   ["primary-contrast", "primary"], ["secondary-contrast", "secondary"], ["danger-contrast", "danger"],
   ["text", "surface"], ["text-muted", "surface"], ["text", "surface-muted"], ["disabled-text", "disabled"],
+  ["primary", "surface"],
 ];
 const BOUNDARY_PAIRS = [["border", "surface"], ["focus", "surface"]];
 
