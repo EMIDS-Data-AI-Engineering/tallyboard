@@ -7,7 +7,7 @@ export default function PlayerRegistryScreen() {
   return (
     <>
       <h1>Player Registry</h1>
-      <label htmlFor="player-filter" className="mr-3">Filter players</label>
+      <label htmlFor="player-filter">Filter players</label>
       <input
         id="player-filter"
         type="search"

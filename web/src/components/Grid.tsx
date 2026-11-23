@@ -1,5 +1,4 @@
-import type { HTMLAttributes } from "react";
-import { joinClasses } from "./joinClasses";
+import type { ReactNode } from "react";
 
 export type GridColumns = 1 | 2 | 3 | 4;
 
@@ -10,10 +9,11 @@ const COLUMN_CLASSES: Record<GridColumns, string> = {
   4: "md:grid-cols-4",
 };
 
-export interface GridProps extends HTMLAttributes<HTMLDivElement> {
+export interface GridProps {
   columns?: GridColumns;
+  children: ReactNode;
 }
 
-export function Grid({ columns = 1, className, ...rest }: GridProps) {
-  return <div className={joinClasses("grid grid-cols-1 gap-4", COLUMN_CLASSES[columns], className)} {...rest} />;
+export function Grid({ columns = 1, children }: GridProps) {
+  return <div className={`grid grid-cols-1 gap-4 ${COLUMN_CLASSES[columns]}`}>{children}</div>;
 }
