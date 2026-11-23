@@ -1,0 +1,10 @@
+{
+  "schema": "ui-harness-v1",
+  "install": "cd web && npm ci",
+  "build": "cd web && npm run build",
+  "serve": "cd web && npx vite preview --port 4173 --strictPort",
+  "baseUrl": "http://localhost:4173",
+  "screens": {
+    "875e197d-1398-43ac-8928-258317b79081": "/"
+  }
+}

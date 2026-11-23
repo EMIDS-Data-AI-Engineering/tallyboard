@@ -25,3 +25,7 @@ Design tokens are role-named colours in the `@theme` block of `web/src/styles/ta
 ### Gallery and viewport checklist
 
 Run `npm run dev` in `web/` and open `/gallery.html` (dev server only). Check at 1440, 768, 375 and 375x500 (the short viewport must scroll to reach everything).
+
+## Home screen
+
+`web/src/screens/HomeScreen.tsx` is the route at `/`. It offers **Create New Game** and **View Saved Games** first in the content; the latter stays enabled and, when no games are stored, is described by a "No saved games yet" notice. The screen reads the count through the `SavedGameCatalog` port (`web/src/savedGames`), injected by `SavedGameCatalogProvider`. `web/src/App.tsx` is the composition root and currently wires an empty in-memory catalog until a persistence adapter exists; `useSavedGameCatalog` throws if no provider is mounted.
