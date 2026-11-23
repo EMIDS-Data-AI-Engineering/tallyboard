@@ -17,7 +17,8 @@ Routes are defined in `web/src/routes/routePaths.ts` (URL paths) and `web/src/ro
 
 ## Running all tests (from the repo root)
 
-- `npm install && npm test` — runs the web suite (vitest), then creates `api/.venv`, installs `api[dev]` and runs pytest with coverage.
+- `npm install && npm run setup:api` — one-time setup (needs network): creates `api/.venv` and installs `api[dev]`.
+- `npm test` — runs the web suite (vitest), then pytest with coverage from the existing venv; needs no network.
 
 ## Backend (`api/`)
 

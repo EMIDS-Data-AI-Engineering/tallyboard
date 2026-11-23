@@ -17,8 +17,10 @@ function runWebSuite() {
 }
 
 function runApiSuite() {
-  if (!existsSync(venvPython) && run(isWindows ? "python" : "python3", ["-m", "venv", venvDir]) !== 0) return 1;
-  if (run(venvPython, ["-m", "pip", "install", "--quiet", "-e", `${apiDir}[dev]`]) !== 0) return 1;
+  if (!existsSync(venvPython)) {
+    console.error("api/.venv is missing. Run `npm run setup:api` once (needs network), then `npm test`.");
+    return 1;
+  }
   return run(venvPython, ["-m", "pytest", apiDir, "--cov=tallyboard_api", "--cov-report=term-missing"]);
 }
 

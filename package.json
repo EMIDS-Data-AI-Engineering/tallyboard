@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node scripts/test-all.mjs"
+    "test": "node scripts/test-all.mjs",
+    "setup:api": "node scripts/setup-api.mjs"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",

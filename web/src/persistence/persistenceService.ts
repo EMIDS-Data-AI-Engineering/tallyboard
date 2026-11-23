@@ -20,14 +20,18 @@ export function createPersistenceService({ local, remote }: PersistenceServiceDe
     }
   }
 
-  async function restoreFromBackend(key: string): Promise<unknown | null> {
+  async function fetchFromBackend(key: string): Promise<unknown | null> {
     try {
-      const restored = await remote.get(key);
-      if (restored !== null) local.write(key, restored);
-      return restored;
-    } catch {
-      return null; // offline or unconfigured: a missing key still reads as the null-safe default
+      return await remote.get(key);
+    } catch (error) {
+      throw asBackendReadFailure(error);
     }
+  }
+
+  async function restoreFromBackend(key: string): Promise<unknown | null> {
+    const restored = await fetchFromBackend(key);
+    if (restored !== null) local.write(key, restored);
+    return restored;
   }
 
   return {
@@ -58,4 +62,9 @@ function asSyncFailure(error: unknown): PersistenceError {
     return new PersistenceError(error.kind, error.message, true);
   }
   return new PersistenceError("sync-failed", "Saved locally, but syncing to the backend failed.", true);
+}
+
+function asBackendReadFailure(error: unknown): PersistenceError {
+  if (error instanceof PersistenceError) return error;
+  return new PersistenceError("sync-failed", "Could not read the key from the backend.", false);
 }
