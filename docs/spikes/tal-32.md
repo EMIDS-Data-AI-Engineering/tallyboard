@@ -72,7 +72,7 @@ The compact layout is about **20× smaller**. Caveat: all-`-125` scores are the 
 
 ### E5. Sensitivities (arithmetic from E3)
 
-- Verbose size is roughly linear: about 111 units per score entry. Reaching 50 % of 5,242,880 units needs about 23,600 entries, i.e. about 6,500 rounds across five games with 12 players, or 36 players at the same 300 rounds.
+- Verbose size is roughly linear: about 111 units per score entry. Reaching 50 % of 5,242,880 units needs about 23,600 entries, i.e. about 1,970 rounds in total across five games with 12 players (about 390 per game), or about 15.7 players at 300 rounds per game (1,500 rounds in total). Even against 100 % of the quota the figures are only about 3,940 rounds or about 31 players. This agrees with E3: the verbose layout is within about 1.3× of the 50 % line, so it has little headroom.
 - Free-text notes, undo history or per-round timestamps added later would be additive; none exist today.
 
 ## Recommendation
@@ -135,6 +135,7 @@ components:
           items:
             type: object
             required: [id, name]
+            # player id is unique within a game only; the same id may appear in several games
             properties: {id: {type: string, format: uuid}, name: {type: string, maxLength: 60}}
         rounds:        # rounds[r][p] = points of players[p] in round r
           type: array
@@ -147,7 +148,7 @@ components:
         server_received_at: {type: string, format: date-time}
 ```
 
-Semantics: the call is idempotent per `Game.id`; repeating it yields the same stored state. A game present in the body replaces the stored game wholesale (players, rounds and scores). A game **absent** from the body is left untouched (never deleted); see Open question 4. Changes to the contract are a new path (`/v2/sync`); consumers pin a copy of the file and fail CI on drift, per the standard.
+Semantics: player ids are scoped to their game, so the same player UUID may appear in several games (recurring players), but a duplicate id inside one game's `players` is rejected with `422`. The call is idempotent per `Game.id`; repeating it yields the same stored state. A game present in the body replaces the stored game wholesale (players, rounds and scores). A game **absent** from the body is left untouched (never deleted); see Open question 4. Changes to the contract are a new path (`/v2/sync`); consumers pin a copy of the file and fail CI on drift, per the standard.
 
 ### R4. AC3 — PostgreSQL schema (owned by the sync service, own schema and DB role)
 
@@ -156,18 +157,18 @@ Tables, all in schema `sync`, readable only by the sync service's role:
 | Table | Columns | Notes |
 |---|---|---|
 | `games` | `id uuid PK`, `title text`, `client_updated_at timestamptz`, `server_received_at timestamptz` | the two timestamps are audit only |
-| `players` | `id uuid PK`, `game_id uuid FK→games ON DELETE CASCADE`, `name text`, `seat int` | `UNIQUE(game_id, seat)` |
-| `rounds` | `id uuid PK`, `game_id uuid FK ON DELETE CASCADE`, `number int` | `UNIQUE(game_id, number)` |
-| `scores` | `round_id uuid FK ON DELETE CASCADE`, `player_id uuid FK ON DELETE CASCADE`, `points int` | `PK(round_id, player_id)` |
+| `players` | `game_id uuid FK→games ON DELETE CASCADE`, `id uuid`, `name text`, `seat int` | `PK(game_id, id)`, `UNIQUE(game_id, seat)`; the client's player id is only unique per game, so the same id can exist in several games |
+| `rounds` | `game_id uuid FK→games ON DELETE CASCADE`, `number int` | `PK(game_id, number)` |
+| `scores` | `game_id uuid`, `round_number int`, `player_id uuid`, `points int` | `PK(game_id, round_number, player_id)`; composite FKs `(game_id, round_number)→rounds` and `(game_id, player_id)→players`, both `ON DELETE CASCADE`, so a score can only link a round and a player of the same game |
 
-`scores` has 18,000 rows for the worst case in E2, which is small for PostgreSQL. Players and rounds get server-generated UUIDs; the client contract does not carry round ids (compact layout). Indexes: the PKs plus `players(game_id)` and `rounds(game_id)`.
+`scores` has 18,000 rows for the worst case in E2, which is small for PostgreSQL. The client contract carries no round ids (compact layout); rounds are keyed by their number within the game. Indexes: the composite PKs already lead with `game_id`, so no extra indexes are needed.
 
 SQLAlchemy 2.x async models (sketch, **unexecuted**; driver `postgresql+asyncpg`, URL read from the environment, never committed):
 
 ```python
 from datetime import datetime
-from uuid import UUID, uuid4
-from sqlalchemy import ForeignKey, UniqueConstraint
+from uuid import UUID
+from sqlalchemy import ForeignKey, ForeignKeyConstraint, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 class Base(DeclarativeBase):
@@ -183,26 +184,29 @@ class GameRecord(Base):
 class PlayerRecord(Base):
     __tablename__ = "players"
     __table_args__ = (UniqueConstraint("game_id", "seat"),)
-    id: Mapped[UUID] = mapped_column(primary_key=True)
-    game_id: Mapped[UUID] = mapped_column(ForeignKey("sync.games.id", ondelete="CASCADE"), index=True)
+    game_id: Mapped[UUID] = mapped_column(ForeignKey("sync.games.id", ondelete="CASCADE"), primary_key=True)
+    id: Mapped[UUID] = mapped_column(primary_key=True)   # unique per game only
     name: Mapped[str]
     seat: Mapped[int]
 
 class RoundRecord(Base):
     __tablename__ = "rounds"
-    __table_args__ = (UniqueConstraint("game_id", "number"),)
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    game_id: Mapped[UUID] = mapped_column(ForeignKey("sync.games.id", ondelete="CASCADE"), index=True)
-    number: Mapped[int]
+    game_id: Mapped[UUID] = mapped_column(ForeignKey("sync.games.id", ondelete="CASCADE"), primary_key=True)
+    number: Mapped[int] = mapped_column(primary_key=True)
 
 class ScoreRecord(Base):
     __tablename__ = "scores"
-    round_id: Mapped[UUID] = mapped_column(ForeignKey("sync.rounds.id", ondelete="CASCADE"), primary_key=True)
-    player_id: Mapped[UUID] = mapped_column(ForeignKey("sync.players.id", ondelete="CASCADE"), primary_key=True)
+    __table_args__ = (
+        ForeignKeyConstraint(["game_id", "round_number"], ["sync.rounds.game_id", "sync.rounds.number"], ondelete="CASCADE"),
+        ForeignKeyConstraint(["game_id", "player_id"], ["sync.players.game_id", "sync.players.id"], ondelete="CASCADE"),
+    )
+    game_id: Mapped[UUID] = mapped_column(primary_key=True)
+    round_number: Mapped[int] = mapped_column(primary_key=True)
+    player_id: Mapped[UUID] = mapped_column(primary_key=True)
     points: Mapped[int]
 ```
 
-Alembic revision `0001_create_sync_schema` (sketch, **unexecuted**; reversible, no DDL at startup; `env.py` must use `version_table_schema="sync"` and an async engine from the environment):
+Alembic revision `0001_create_sync_schema` (sketch, **unexecuted**; reversible, no DDL at startup; `env.py` uses an async engine from the environment and keeps Alembic's default `alembic_version` table in `public`, **not** in `sync`: Alembic creates that table before the revision runs, and a version table inside `sync` would make the first upgrade fail (schema not yet created) and `DROP SCHEMA sync` fail on downgrade. The service's role therefore needs `CREATE` on the database and `USAGE`/`CREATE` on `public` for the version table only; if the schema must be provisioned by a DBA instead, remove the two schema statements from the revision and keep the rest):
 
 ```python
 import sqlalchemy as sa
@@ -220,22 +224,22 @@ def upgrade() -> None:
         sa.Column("server_received_at", sa.DateTime(timezone=True), nullable=False),
         schema="sync")
     op.create_table("players",
+        sa.Column("game_id", sa.Uuid, sa.ForeignKey("sync.games.id", ondelete="CASCADE"), primary_key=True),
         sa.Column("id", sa.Uuid, primary_key=True),
-        sa.Column("game_id", sa.Uuid, sa.ForeignKey("sync.games.id", ondelete="CASCADE"), nullable=False),
         sa.Column("name", sa.Text, nullable=False),
         sa.Column("seat", sa.Integer, nullable=False),
         sa.UniqueConstraint("game_id", "seat"), schema="sync")
-    op.create_index("ix_players_game_id", "players", ["game_id"], schema="sync")
     op.create_table("rounds",
-        sa.Column("id", sa.Uuid, primary_key=True),
-        sa.Column("game_id", sa.Uuid, sa.ForeignKey("sync.games.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("number", sa.Integer, nullable=False),
-        sa.UniqueConstraint("game_id", "number"), schema="sync")
-    op.create_index("ix_rounds_game_id", "rounds", ["game_id"], schema="sync")
+        sa.Column("game_id", sa.Uuid, sa.ForeignKey("sync.games.id", ondelete="CASCADE"), primary_key=True),
+        sa.Column("number", sa.Integer, primary_key=True), schema="sync")
     op.create_table("scores",
-        sa.Column("round_id", sa.Uuid, sa.ForeignKey("sync.rounds.id", ondelete="CASCADE"), primary_key=True),
-        sa.Column("player_id", sa.Uuid, sa.ForeignKey("sync.players.id", ondelete="CASCADE"), primary_key=True),
-        sa.Column("points", sa.Integer, nullable=False), schema="sync")
+        sa.Column("game_id", sa.Uuid, primary_key=True),
+        sa.Column("round_number", sa.Integer, primary_key=True),
+        sa.Column("player_id", sa.Uuid, primary_key=True),
+        sa.Column("points", sa.Integer, nullable=False),
+        sa.ForeignKeyConstraint(["game_id", "round_number"], ["sync.rounds.game_id", "sync.rounds.number"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["game_id", "player_id"], ["sync.players.game_id", "sync.players.id"], ondelete="CASCADE"),
+        schema="sync")
 
 def downgrade() -> None:
     op.drop_table("scores", schema="sync")
