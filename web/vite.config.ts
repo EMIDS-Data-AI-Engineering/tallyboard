@@ -1,8 +1,9 @@
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   // Keep multi-line template literals from dependencies as escaped strings so output stays single-line.
   esbuild: { supported: { "template-literal": false } },
   optimizeDeps: {
@@ -17,7 +18,8 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/main.tsx", "src/test/**", "src/types/**", "src/**/*.test.*"],
+      exclude: ["src/main.tsx", "src/gallery.tsx", "src/test/**", "src/types/**", "src/**/*.test.*"],
+      thresholds: { lines: 80, functions: 80, branches: 80, statements: 80 },
     },
   },
 });
