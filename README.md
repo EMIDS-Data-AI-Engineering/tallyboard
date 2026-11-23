@@ -29,3 +29,5 @@ Run `npm run dev` in `web/` and open `/gallery.html` (dev server only). Check at
 ## Home screen
 
 `web/src/screens/HomeScreen.tsx` is the route at `/`. It offers **Create New Game** and **View Saved Games** first in the content; the latter stays enabled and, when no games are stored, is described by a "No saved games yet" notice. The screen reads the count through the `SavedGameCatalog` port (`web/src/savedGames`), injected by `SavedGameCatalogProvider`. `web/src/App.tsx` is the composition root and currently wires an empty in-memory catalog until a persistence adapter exists; `useSavedGameCatalog` throws if no provider is mounted.
+
+**Live layout check (headless Chromium against `vite preview`).** At 1440x900, 768x1024, 375x667 and 375x500 both Home buttons sit fully inside the viewport (bottom edge at most 341px) with no horizontal overflow, and the 'No saved games yet' notice shows. Tapping each button lands on `/games/new` and `/games`. The Saved Games, Create New Game and Not Found routes also show no horizontal overflow at those widths.
