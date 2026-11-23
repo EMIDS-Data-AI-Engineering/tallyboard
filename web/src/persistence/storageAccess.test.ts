@@ -26,9 +26,9 @@ describe("localStorage access failures", () => {
     expect(() => store.write("score", 1)).toThrowError(expect.objectContaining({ kind: "local-write-failed" }));
   });
 
-  it("the service surfaces local-read-failed from load", async () => {
+  it("the service resolves local-read-failed from load, never sync-failed", async () => {
     const local = createLocalStorageStore(throwingStorage("getItem"));
     const service = createPersistenceService({ local, remote: { put: async () => ({}), get: async () => null } });
-    await expect(service.load("score")).rejects.toMatchObject({ kind: "local-read-failed" });
+    await expect(service.load("score", 3)).resolves.toMatchObject({ ok: false, value: 3, error: { kind: "local-read-failed" } });
   });
 });

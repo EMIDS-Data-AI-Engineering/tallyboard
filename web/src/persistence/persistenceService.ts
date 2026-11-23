@@ -6,14 +6,15 @@ export interface PersistenceServiceDependencies {
   remote: RemoteRecordStore;
 }
 
-/** Resolved by load when the value could not be fully determined; value is the caller's fallback (or the restored value). */
+/** What load always resolves: check `ok` before using `value`. On failure `value` is the caller's fallback,
+ *  or the backend value that was restored but could not be written back to localStorage. */
+export type LoadResult<T> = { ok: true; value: T | null } | LoadFailure<T>;
+
 export interface LoadFailure<T> {
   ok: false;
   value: T | null;
   error: PersistenceError;
 }
-
-export type LoadResult<T> = T | null | LoadFailure<T>;
 
 export interface PersistenceService {
   save(key: string, value: unknown): Promise<void>;
@@ -44,13 +45,19 @@ export function createPersistenceService({ local, remote }: PersistenceServiceDe
     } catch (error) {
       return failure(fallback, error as PersistenceError);
     }
-    if (restored === null) return fallback;
+    if (restored === null) return success(fallback);
     try {
       local.write(key, restored);
     } catch (error) {
       return failure(restored as T, asPersistenceError(error));
     }
-    return restored as T;
+    return success(restored as T);
+  }
+
+  async function loadFromLocalOrBackend<T>(key: string, fallback: T | null): Promise<LoadResult<T>> {
+    assertKeyAcceptedByBackend(key);
+    const localValue = local.read(key);
+    return localValue !== null ? success(localValue as T) : restoreFromBackend(key, fallback);
   }
 
   return {
@@ -63,11 +70,8 @@ export function createPersistenceService({ local, remote }: PersistenceServiceDe
 
     async load<T>(key: string, fallback: T | null = null): Promise<LoadResult<T>> {
       try {
-        assertKeyAcceptedByBackend(key);
-        const localValue = local.read(key);
-        return localValue !== null ? (localValue as T) : await restoreFromBackend(key, fallback);
+        return await loadFromLocalOrBackend(key, fallback);
       } catch (error) {
-        if (error instanceof PersistenceError && error.kind === "local-read-failed") throw error;
         return failure(fallback, asPersistenceError(error));
       }
     },
@@ -83,9 +87,13 @@ function assertKeyAcceptedByBackend(key: string): void {
 }
 
 function assertValueIsStorable(value: unknown): void {
-  if (value === undefined) {
-    throw new PersistenceError("invalid-value", "undefined cannot be stored; use null to store an empty value.");
+  if (value === undefined || value === null) {
+    throw new PersistenceError("invalid-value", "undefined and null cannot be stored; null is the value load reports for a missing key.");
   }
+}
+
+function success<T>(value: T | null): LoadResult<T> {
+  return { ok: true, value };
 }
 
 function failure<T>(value: T | null, error: PersistenceError): LoadFailure<T> {
@@ -94,7 +102,7 @@ function failure<T>(value: T | null, error: PersistenceError): LoadFailure<T> {
 
 function asPersistenceError(error: unknown): PersistenceError {
   if (error instanceof PersistenceError) return error;
-  return new PersistenceError("sync-failed", "Could not read the key.", false);
+  return new PersistenceError("local-read-failed", "Could not read the key.", false);
 }
 
 function asSyncFailure(error: unknown): PersistenceError {

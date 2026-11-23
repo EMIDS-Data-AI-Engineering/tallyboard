@@ -25,7 +25,7 @@ describe("persistenceService offline and key handling", () => {
     const local = memoryLocal();
     local.write("kept", 7);
     const service = createPersistenceService({ local, remote: failingRemote });
-    expect(await service.load("kept")).toBe(7);
+    expect(await service.load("kept")).toEqual({ ok: true, value: 7 });
   });
 
   it("load resolves a failed write-back of the restored value as a typed error", async () => {
