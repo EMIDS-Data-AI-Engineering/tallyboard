@@ -72,3 +72,31 @@ describe("route table: unknown paths", () => {
     expect((await axe(container)).violations).toEqual([]);
   });
 });
+
+describe("route table: Home navigation", () => {
+  it("navigates from Home to Create New Game when Create New Game is tapped", async () => {
+    const { router } = await renderAt("/");
+
+    fireEvent.click(screen.getByRole("button", { name: "Create New Game" }));
+
+    expect(router.state.location.pathname).toBe("/games/new");
+    expect(await screen.findByRole("heading", { level: 1, name: "Create New Game" })).toBeTruthy();
+  });
+
+  it("navigates from Home to Saved Games when View Saved Games is tapped", async () => {
+    const { router } = await renderAt("/", [{ id: "game-1" }]);
+
+    fireEvent.click(screen.getByRole("button", { name: /View Saved Games/ }));
+
+    expect(router.state.location.pathname).toBe("/games");
+    expect(await screen.findByRole("heading", { level: 1, name: "Saved Games" })).toBeTruthy();
+  });
+
+  it("navigates to Saved Games from Home even when no games are stored", async () => {
+    const { router } = await renderAt("/", []);
+
+    fireEvent.click(screen.getByRole("button", { name: /View Saved Games/ }));
+
+    expect(router.state.location.pathname).toBe("/games");
+  });
+});

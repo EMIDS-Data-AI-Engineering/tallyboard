@@ -21,6 +21,13 @@ describe("App", () => {
     expect(screen.getAllByRole("main")).toHaveLength(1);
   });
 
+  it("renders Create New Game and View Saved Games buttons at the root URL", async () => {
+    await renderApp();
+
+    expect(screen.getByRole("button", { name: "Create New Game" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /View Saved Games/ })).toBeTruthy();
+  });
+
   it("has no axe accessibility violations", async () => {
     const { axe } = await import("jest-axe");
     const { container } = await renderApp();
