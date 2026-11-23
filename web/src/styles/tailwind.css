@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Approved light brand palette. Border is a darker lilac: brand #E9D8EC fails 3:1 on white. */
+/* Approved light brand palette. Border stays #6b7280: brand #E9D8EC fails 3:1 on white. */
 @theme {
   --color-primary: #C2185B;
   --color-primary-contrast: #ffffff;
@@ -10,7 +10,7 @@
   --color-surface-muted: #FFF7FA;
   --color-text: #2B1830;
   --color-text-muted: #6A5570;
-  --color-border: #8F73B0;
+  --color-border: #6b7280;
   --color-danger: #b91c1c;
   --color-danger-contrast: #ffffff;
   --color-focus: #C2185B;
