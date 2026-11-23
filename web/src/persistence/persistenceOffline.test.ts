@@ -25,7 +25,7 @@ describe("persistenceService offline and key handling", () => {
     const local = memoryLocal();
     local.write("kept", 7);
     const service = createPersistenceService({ local, remote: failingRemote });
-    expect(await service.load("kept")).toBe(7);
+    expect(await service.load("kept")).toEqual({ ok: true, value: 7 });
   });
 
   it("load resolves a failed write-back of the restored value as a typed error", async () => {
@@ -40,5 +40,26 @@ describe("persistenceService offline and key handling", () => {
     const service = createPersistenceService({ local, remote: failingRemote });
     await expect(service.save("games/1", 1)).rejects.toMatchObject({ kind: "invalid-key" });
     expect(local.read("games/1")).toBeNull();
+  });
+});
+
+describe("load result shape", () => {
+  it("reports a local read failure as ok:false labelled local-read-failed, not sync-failed", async () => {
+    const local = { read: () => { throw new Error("blocked"); }, write: () => undefined };
+    const service = createPersistenceService({ local, remote: failingRemote });
+    await expect(service.load("k", 1)).resolves.toMatchObject({ ok: false, value: 1, error: { kind: "local-read-failed" } });
+  });
+
+  it("returns ok:true with the fallback for a key absent everywhere", async () => {
+    const remote = { put: async () => ({}), get: async () => null };
+    const service = createPersistenceService({ local: memoryLocal(), remote });
+    await expect(service.load("absent", "default")).resolves.toEqual({ ok: true, value: "default" });
+  });
+
+  it("does not confuse a stored value shaped like a failure with a failure", async () => {
+    const local = memoryLocal();
+    local.write("odd", { ok: false });
+    const service = createPersistenceService({ local, remote: failingRemote });
+    await expect(service.load("odd")).resolves.toEqual({ ok: true, value: { ok: false } });
   });
 });
