@@ -8,7 +8,7 @@ export default defineConfig({
   optimizeDeps: {
     // Pre-bundle the CommonJS React packages explicitly, skipping the crawl that a quickly closed server cancels.
     noDiscovery: true,
-    include: ["react", "react/jsx-dev-runtime", "react-dom/client"],
+    include: ["react", "react/jsx-dev-runtime", "react-dom/client", "react-router", "react-router-dom"],
   },
   test: {
     setupFiles: ["./src/test/setup.ts"],

@@ -36,4 +36,13 @@ describe("Vite dev server", () => {
       expect(await response.text()).toContain("findRootElement");
     });
   });
+
+  it("transforms the route table module that imports react-router-dom", async () => {
+    await withDevServer(async (baseUrl) => {
+      const response = await fetch(new URL("src/routes/routeTable.tsx", baseUrl));
+
+      expect(response.status).toBe(200);
+      expect(await response.text()).toContain("react-router-dom");
+    });
+  });
 });
