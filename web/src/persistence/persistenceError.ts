@@ -2,7 +2,8 @@ export type PersistenceErrorKind =
   | "local-read-failed"
   | "local-write-failed"
   | "sync-failed"
-  | "sync-unconfigured";
+  | "sync-unconfigured"
+  | "invalid-key";
 
 export class PersistenceError extends Error {
   readonly kind: PersistenceErrorKind;

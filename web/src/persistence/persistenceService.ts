@@ -21,13 +21,18 @@ export function createPersistenceService({ local, remote }: PersistenceServiceDe
   }
 
   async function restoreFromBackend(key: string): Promise<unknown | null> {
-    const restored = await remote.get(key);
-    if (restored !== null) local.write(key, restored);
-    return restored;
+    try {
+      const restored = await remote.get(key);
+      if (restored !== null) local.write(key, restored);
+      return restored;
+    } catch {
+      return null; // offline or unconfigured: a missing key still reads as the null-safe default
+    }
   }
 
   return {
     async save(key, value) {
+      assertKeyAcceptedByBackend(key);
       local.write(key, value);
       await syncToBackend(key, value);
     },
@@ -38,6 +43,14 @@ export function createPersistenceService({ local, remote }: PersistenceServiceDe
       return value !== null ? (value as T) : fallback;
     },
   };
+}
+
+const BACKEND_KEY_PATTERN = /^[A-Za-z0-9._:-]{1,128}$/;
+
+function assertKeyAcceptedByBackend(key: string): void {
+  if (!BACKEND_KEY_PATTERN.test(key)) {
+    throw new PersistenceError("invalid-key", "Keys must be 1-128 characters from A-Z a-z 0-9 . _ : -");
+  }
 }
 
 function asSyncFailure(error: unknown): PersistenceError {
