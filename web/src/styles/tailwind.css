@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/* Provisional placeholder values (no approved brand tokens yet); only the role names are fixed. */
+@theme {
+  --color-primary: #1d4ed8;
+  --color-primary-contrast: #ffffff;
+  --color-secondary: #e5e7eb;
+  --color-secondary-contrast: #111827;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f3f4f6;
+  --color-text: #111827;
+  --color-text-muted: #4b5563;
+  --color-border: #6b7280;
+  --color-danger: #b91c1c;
+  --color-danger-contrast: #ffffff;
+  --color-focus: #1d4ed8;
+  --color-disabled: #d1d5db;
+  --color-disabled-text: #4b5563;
+  --breakpoint-md: 48rem;
+}
