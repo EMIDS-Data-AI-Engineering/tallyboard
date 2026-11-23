@@ -13,3 +13,13 @@
 ## Routing
 
 Routes are defined in `web/src/routes/routePaths.ts` (URL paths) and `web/src/routes/routeTable.tsx` (screens). Register new screens there.
+
+## Shared UI components
+
+`web/src/components/` holds the Button, Input, Card and Grid primitives, styled only with Tailwind v4 utilities.
+Design tokens are role-named colours (`primary`, `surface`, `text`, `border`, `danger`, `focus`, `disabled`, …) in the
+`@theme` block of `web/src/styles/tailwind.css`, plus the `md` breakpoint (48rem). Values are provisional placeholders;
+`web/tests/designTokens.test.ts` asserts WCAG contrast for them.
+
+Run `npm run dev` in `web/` and open `/gallery.html` to see every primitive. Manual viewport checklist:
+1440, 768, 375 wide and 375x500 (the page must scroll to reach everything).
