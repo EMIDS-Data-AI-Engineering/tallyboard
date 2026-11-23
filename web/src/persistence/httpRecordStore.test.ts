@@ -14,7 +14,7 @@ function respondingWith(status: number, body: unknown) {
   return { fetchStub, calls };
 }
 
-async function buildStore(fetchStub: unknown, url: string | undefined = baseUrl) {
+async function buildStore(fetchStub: unknown, url: string | null = baseUrl) {
   const { createHttpRecordStore } = await import(/* @vite-ignore */ storeModule);
   return createHttpRecordStore({ fetch: fetchStub, baseUrl: url });
 }
@@ -63,7 +63,7 @@ describe("httpRecordStore", () => {
 
   it("a missing base URL throws sync-unconfigured", async () => {
     const useUnconfiguredStore = async () => {
-      const store = await buildStore(respondingWith(200, {}).fetchStub, undefined);
+      const store = await buildStore(respondingWith(200, {}).fetchStub, null);
       return store.put("k", 1);
     };
 
