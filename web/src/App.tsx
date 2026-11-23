@@ -1,8 +1,8 @@
+import { useState } from "react";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { appRoutes } from "./routes/routeTable";
+
 export default function App() {
-  return (
-    <main className="app">
-      <h1>Tallyboard</h1>
-      <p>The project baseline is running.</p>
-    </main>
-  );
+  const [router] = useState(() => createBrowserRouter(appRoutes));
+  return <RouterProvider router={router} />;
 }
