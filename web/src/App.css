@@ -1,0 +1,12 @@
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+.app {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 2rem;
+}
