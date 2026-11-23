@@ -59,7 +59,7 @@ describe("persistenceService", () => {
 
     const reopened = await buildService(fakeRemote().remote);
 
-    expect(await reopened.load("player")).toEqual({ name: "Jane Doe" });
+    expect(await reopened.load("player")).toEqual({ ok: true, value: { name: "Jane Doe" } });
   });
 
   it("localStorage value wins over a differing backend copy and the backend is not consulted", async () => {
@@ -68,7 +68,7 @@ describe("persistenceService", () => {
 
     const service = await buildService(remote);
 
-    expect(await service.load("score")).toBe(10);
+    expect(await service.load("score")).toEqual({ ok: true, value: 10 });
     expect(calls).toEqual([]);
   });
 
@@ -76,7 +76,7 @@ describe("persistenceService", () => {
     const { remote } = fakeRemote({ get: async () => ({ wins: 3 }) });
     const service = await buildService(remote);
 
-    expect(await service.load("stats")).toEqual({ wins: 3 });
+    expect(await service.load("stats")).toEqual({ ok: true, value: { wins: 3 } });
     expect(JSON.parse(window.localStorage.getItem("stats") as string)).toEqual({ wins: 3 });
   });
 
@@ -93,22 +93,22 @@ describe("persistenceService", () => {
   it("load returns null for a key absent locally and remotely", async () => {
     const service = await buildService(fakeRemote().remote);
 
-    expect(await service.load("nothing")).toBeNull();
+    expect(await service.load("nothing")).toEqual({ ok: true, value: null });
   });
 
   it("load returns the caller-supplied fallback for a missing key", async () => {
     const service = await buildService(fakeRemote().remote);
 
-    expect(await service.load("nothing", { empty: true })).toEqual({ empty: true });
+    expect(await service.load("nothing", { empty: true })).toEqual({ ok: true, value: { empty: true } });
   });
 
   it("corrupt local JSON surfaces a typed error", async () => {
     window.localStorage.setItem("broken", "{not json");
     const service = await buildService(fakeRemote().remote);
 
-    const error = await rejectionOf(service.load("broken"));
+    const result = await service.load("broken");
 
-    expect(error.kind).toBe("local-read-failed");
+    expect(result).toMatchObject({ ok: false, error: { kind: "local-read-failed" } });
   });
 
   it("a failing local write rejects with local-write-failed and skips the sync", async () => {
