@@ -1,6 +1,7 @@
 import type { ReactElement } from "react";
 import { createRoutesFromElements, Route } from "react-router-dom";
 import AppLayout from "../layout/AppLayout";
+import HomeScreen from "../screens/HomeScreen";
 import NotFoundScreen from "../screens/NotFoundScreen";
 import PlaceholderScreen from "../screens/PlaceholderScreen";
 import PlayerRegistryScreen from "../screens/PlayerRegistryScreen";
@@ -17,7 +18,7 @@ function placeholder(path: string, title: string): ScreenRoute {
 }
 
 export const SCREEN_ROUTES: readonly ScreenRoute[] = [
-  placeholder(ROUTE_PATHS.home, "Home"),
+  { path: ROUTE_PATHS.home, title: "Home", element: <HomeScreen /> },
   placeholder(ROUTE_PATHS.createGame, "Create New Game"),
   placeholder(ROUTE_PATHS.savedGames, "Saved Games"),
   placeholder(ROUTE_PATHS.scoreboard, "Scoreboard"),

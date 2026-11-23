@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+/* Approved light brand palette. Border stays #6b7280: brand #E9D8EC fails 3:1 on white. */
+@theme {
+  --color-primary: #C2185B;
+  --color-primary-contrast: #ffffff;
+  --color-secondary: #7B4FB8;
+  --color-secondary-contrast: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-muted: #FFF7FA;
+  --color-text: #2B1830;
+  --color-text-muted: #6A5570;
+  --color-border: #6b7280;
+  --color-danger: #b91c1c;
+  --color-danger-contrast: #ffffff;
+  --color-focus: #C2185B;
+  --color-disabled: #9ca3af;
+  --color-disabled-text: #111827;
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-heading: Nunito, system-ui, sans-serif;
+  --breakpoint-md: 48rem;
+}
