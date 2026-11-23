@@ -1,0 +1,71 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "Tallyboard records sync", "version": "1.0.0"},
+  "paths": {
+    "/v1/records/{key}": {
+      "parameters": [
+        {"name": "key", "in": "path", "required": true, "schema": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9._:-]+$"}}
+      ],
+      "put": {
+        "operationId": "putRecord",
+        "summary": "Store a value under a key; the request always overwrites (client wins).",
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/RecordWrite"}}}
+        },
+        "responses": {
+          "200": {
+            "description": "Stored and acknowledged",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/RecordAcknowledgement"}}}
+          },
+          "422": {"description": "Invalid key or body"}
+        }
+      },
+      "get": {
+        "operationId": "getRecord",
+        "summary": "Read the stored value for a key.",
+        "responses": {
+          "200": {
+            "description": "The stored record",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Record"}}}
+          },
+          "404": {
+            "description": "No record under this key",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/NotFound"}}}
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RecordWrite": {
+        "type": "object",
+        "required": ["value"],
+        "properties": {"value": {"description": "Any JSON value"}}
+      },
+      "RecordAcknowledgement": {
+        "type": "object",
+        "required": ["key", "stored_at"],
+        "properties": {
+          "key": {"type": "string"},
+          "stored_at": {"type": "string", "format": "date-time"}
+        }
+      },
+      "Record": {
+        "type": "object",
+        "required": ["key", "value", "stored_at"],
+        "properties": {
+          "key": {"type": "string"},
+          "value": {"description": "Any JSON value"},
+          "stored_at": {"type": "string", "format": "date-time"}
+        }
+      },
+      "NotFound": {
+        "type": "object",
+        "required": ["detail"],
+        "properties": {"detail": {"type": "string"}}
+      }
+    }
+  }
+}

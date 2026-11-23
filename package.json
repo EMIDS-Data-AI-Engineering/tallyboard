@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "vitest run"
+    "test": "node scripts/test-all.mjs",
+    "setup:api": "node scripts/setup-api.mjs"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.5",

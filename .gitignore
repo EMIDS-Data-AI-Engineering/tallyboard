@@ -4,3 +4,10 @@ build/
 coverage/
 .vite/
 *.log
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+*.egg-info/
+.venv/
+.env

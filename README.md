@@ -1,7 +1,8 @@
 # tallyboard
 
 - `web/` — React + TypeScript + Vite frontend.
-- `api/` — FastAPI backend (added by later stories).
+- `api/` — FastAPI backend: key-value records sync endpoint (`PUT`/`GET /v1/records/{key}`) backed by PostgreSQL.
+- `contracts/` — versioned service contracts; `web/contracts/` holds the web's pinned copy.
 
 ## Commands (run in `web/`)
 
@@ -13,6 +14,19 @@
 ## Routing
 
 Routes are defined in `web/src/routes/routePaths.ts` (URL paths) and `web/src/routes/routeTable.tsx` (screens). Register new screens there.
+
+## Running all tests (from the repo root)
+
+- `npm install && npm test` — runs the web suite (vitest), then pytest with coverage. The first run needs network: it creates `api/.venv` and installs `api[dev]`. Later runs need no network; they reinstall only when `api/pyproject.toml` changed (a hash stamp is kept inside `api/.venv`).
+- `npm run setup:api` — the same venv setup on its own.
+
+## Backend (`api/`)
+
+- The database URL is read from the `DATABASE_URL` environment variable (an `postgresql+asyncpg://` URL); it is never written to files.
+- `CORS_ORIGINS` — comma-separated browser origins allowed to call the API (for example `http://localhost:5173`); required when serving, no wildcard.
+- `VITE_SYNC_API_URL` — the API base URL, read by the `browserPersistence` factory (`web/src/persistence/browserPersistence.ts`). It is not wired into the app yet; the auto-save story (TAL-19) will do that, so setting it today changes nothing in the running app.
+- `cd api && .venv/bin/alembic upgrade head` — apply migrations (schema `sync`, table `sync.records`).
+- `cd api && .venv/bin/uvicorn --factory tallyboard_api.main:create_app` — serve the API.
 
 ## Component library
 
